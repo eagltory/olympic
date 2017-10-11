@@ -1,0 +1,263 @@
+swagger: '2.0'
+info:
+  title: Pooq 3.5 API Specification
+  description: 본 규격은 상시 변동할 수 있는 내용을 포함하고 있습니다. 변경 내용에 관한 문의는 dev@captv.co.kr로 하여주시기 바랍니다.
+  version: 0.0.2
+host: apis.pooq.co.kr
+basePath: /
+schemes:
+  - https
+produces:
+  - application/json
+paths:
+  /olympic/multiband/{topcategory}/{middlecategory}/{bottomcategory}:
+    get:
+      summary: 올림픽 특별관을 위한 Multiband
+      description: 편성되어 있는 multiband 정보를 가져온다,
+      operationId: getolympicmultibands
+      tags:
+        - olympic
+      produces:
+        - application/json
+      parameters:
+        - name: apikey
+          in: query
+          description: API 인증 키 (별도제공) [공통 파라미터]
+          default: testkey
+          required: true
+          type: string
+        - name: credential
+          in: query
+          description: 사용자/프로필 단위 인증 키 [공통 파라미터]
+          default: testcredential
+          required: true
+          type: string
+        - name: device
+          in: query
+          description: 지정된 디바이스 구분값 [공통 파라미터]
+          default: pc
+          required: true
+          type: string
+        - name: partner
+          in: query
+          description: 파트너 구분값 [공통 파라미터]
+          default: pooq
+          required: true
+          type: string
+        - name: pooqzone
+          in: query
+          description: |
+            푹존 구분값 [공통 파라미터]
+            - 기본값 = none
+          default: none
+          required: true
+          type: string
+        - name: region
+          in: query
+          description: 서비스 국가 구분. ISO-3361 3글자 시스템(alpha-3)을 사용 [공통 파라미터]
+          default: kor
+          required: true
+          type: string
+        - name: drm
+          in: query
+          description: |
+            해당 플랫폼이 지원하는 DRM타입 지정. 복수입력 가능. [공통 파라미터]
+            - Widevine Classic = wc
+            - Widevine Modular = wm
+            - Fireplay = fp
+            - PlayReady  = pr
+            - 미지원 = none
+          default: wm
+          required: true
+          type: string
+        - name: targetage
+          in: query
+          description: |
+            시청연령등급 [공통 파라미터]
+            - 12세 이하 = 12
+            - 15세 이하 = 15
+            - 19세 이하 = 19
+            - 전체 = all
+            - 자동 = auto
+          default: auto
+          required: true
+          type: string
+        - name: genre
+          in: query
+          description: 미정
+          required: true
+          type: string
+        - name: querystartdate
+          in: query
+          description: '검색하는 멀티밴드의 시작 날짜 (yyyymmdd)'
+          required: true
+          type: string
+        - name: queryenddate
+          in: query
+          description: '검색하는 멀티밴드의 끝 날짜 (yyyymmdd)'
+          required: true
+          type: string
+        - name: offset
+          in: query
+          description: '시작 레코드 번호 [0]'
+          default: 0
+          required: true
+          type: integer
+        - name: limit
+          in: query
+          description: '한번에 가져오는 데이타 숫자 [5]'
+          default: 5
+          required: true
+          type: integer
+        - name: topcategory
+          in: path
+          description: '멀티벤드의 최상위 카테고리명(일자별 보기:dailly, 종목별보기:game...)'
+          required: true
+          type: string
+          default: dailly
+        - name: middlecategory
+          in: path
+          description: '멀티벤드의 중간 카테고리명(2월11일(토):0211, 2월10일(금):0210...) 전체를 조회하려면 all을 입력한다. 이 변수에 all을 입력한 경우에는 최하위 카테고리에 입력된 내용은 무시된다.'
+          required: true
+          type: string
+          default: 0211
+        - name: bottomcategory
+          in: path
+          description: '멀티벤드의 최하위 카테고리명(오늘의 평창:today, MBC:mbc, KBS:kbs...) 전체를 조회하려면 all을 입력한다.'
+          required: true
+          type: string
+          default: today
+      responses:
+        '200':
+          description: 성공
+          schema:
+            $ref: '#/definitions/olympicmultibandlist'
+        '550':
+          description: 메시지 표시 수준 에러 (에러 메시지를 노출하고 더 이상의 작업은 없음)
+          schema:
+            $ref: '#/definitions/errorresult'
+        '551':
+          description: 추가 동작 필요 수준 에러 (에러 메시지를 노출하고 추가 작업이 있음)
+          schema:
+            $ref: '#/definitions/errorresult'
+definitions:
+  errorresult:
+    type: object
+    description: |
+      '[공통 메시지]실패한 경우 리턴되는 공통 메시지,
+      HTTP Return code는 이 경우에도 200이다'
+    properties:
+      resultcode:
+        description: |
+          에러 코드가 리턴된다. HTTP status code 또는
+          CAP에서 확장한 코드를 사용할 수 있다. 이 코드가 200인 경우는 없다.
+        example: '550'
+        type: string
+      resultmessage:
+        description: |
+          에러 발생 시에 클라이언트가 화면에 표시할 메시지가 들어있다.
+          줄바꿈 문자로는 '\n'을 사용한다.
+        example: 해당 데이타가 없습니다.\n나중에 다시 해보세요.
+        type: string
+      resultoptional:
+        description: |
+          에러 발생시에 서버에서 클라이언트로 전송하는 추가 정보가 포함된다.
+          에러시 표시할 URL와 같은 내용이 포함된다. 이를 처리하는 것은
+          API별로 다르다. 700인 경우에는 이 필드가 공백임
+        example: http://www.pooq.co.kr/critical_error.html
+        type: string
+  olympicmultibandlist:
+    description: 멀티밴드 목록
+    type: object
+    properties:
+      pagecount:
+        description: 남은 목록 갯수 (페이징을 위해 최대 limit x10 수 만큼 리턴됨)
+        type: string
+        example: '50'
+      count:
+        description: 목록 갯수 (페이징을 위해 최대 limit x10 수 만큼 리턴됨)
+        type: string
+        example: '1'
+      list:
+        type: array
+        items:
+          $ref: '#/definitions/olympicmultibandinfo'
+  olympicmultibandinfo:
+    type: object
+    properties:
+      topcategoryid:
+        description: 최상위 카테고리 ID
+        type: string
+        example: 'dailly'
+      topcategoryorder:
+        description: 최상위 카테고리 순서, 1일 가장 먼저 표시되어야 한다.
+        type: string
+        example: '1'
+      topcategorytitle:
+        description: 최상위 카테고리의 이름 ('일자별 보기')
+        type: string
+        example: '일자별 보기'
+      middlecategoryid:
+        description: 중간 카테고리 ID
+        type: string
+        example: '0211'
+      middlecategoryorder:
+        description: 중간 카테고리 순서, 1일 가장 먼저 표시되어야 한다.
+        type: string
+        example: '1'
+      middlecategorytitle:
+        description: 중간 카테고리의 이름 ('2월11일 (토)')
+        type: string
+        example: '2월11일 (토)'
+      bottomcategoryid:
+        description: 최하위 카테고리 ID
+        type: string
+        example: 'dailly'
+      bottomcategoryorder:
+        description: 최하위 카테고리 순서, 1일 가장 먼저 표시되어야 한다.
+        type: string
+        example: '1'
+      bottomcategorytitle:
+        description: 최하위 카테고리의 이름 ('오늘의 평창')
+        type: string
+        example: '오늘의 평창'
+      listtype:
+        description: 목록의 타입 ('vod', 'vod+clip', 'clip')
+        type: string
+        example: 'vod'
+      listorder:
+        description:  목록 표시 순서, 1일 가장 먼저 표시되어야 한다.
+        type: string
+        example: '1'
+      listtitle:
+        description:  목록아이템의 제목
+        type: string
+        example: '2018 평창 올림픽 개회식'
+      listtitle2:
+        description:  목록아이템의 추가 표시 내용
+        type: string
+        example: '2018.02.09 | MBC'
+      listimageurl:
+        description: 목록 아이템의 이미지 URL
+        type: string
+        example: 'http://img.pooq.co.kr/201709/20170913/gbdngjchhecnpev.jpg'
+      listprogramid:
+        description: 목록 아이템의 프로그램ID (스트리밍 호출시 사용)
+        type: string
+        example: M_1002831100000100000
+      listcontentsid:
+        description: 목록 아이템의 콘텐츠ID (스트리밍 호출시 사용)
+        type: string
+        example: M_1002831100000100000
+      listcornerid:
+        description: 목록 아이템의 코너ID (스트리밍 호출시 사용)
+        type: string
+        example: 1
+      listopendate:
+        description: 노츨 시작일 (YYYYMMDD)
+        type: string
+        example: 20171020
+      listitemtype:
+        description: 목록 아이템의 타입ID ('vod','clip')
+        type: string
+        example: 'vod'
