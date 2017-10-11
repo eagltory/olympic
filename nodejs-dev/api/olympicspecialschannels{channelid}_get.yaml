@@ -1,0 +1,214 @@
+swagger: '2.0'
+info:
+  title: Pooq 3.5 API Specification
+  description: 본 규격은 상시 변동할 수 있는 내용을 포함하고 있습니다. 변경 내용에 관한 문의는 dev@captv.co.kr로 하여주시기 바랍니다.
+  version: 0.0.2
+host: apis.pooq.co.kr
+basePath: /
+schemes:
+  - https
+produces:
+  - application/json
+paths:
+  '/olympic/special/channels/{channelid}':
+    get:
+      summary: 올림픽 특별 편성 채널 내용을 가져온다.
+      description: 올림픽 비방 실시간 채널 편성표를 가져온다
+      operationId: getolympicspecialsbychannelid
+      tags:
+        - olympic
+      produces:
+        - application/json
+      parameters:
+        - name: apikey
+          in: query
+          description: API 인증 키 (별도제공) [공통 파라미터]
+          default: testkey
+          required: true
+          type: string
+        - name: credential
+          in: query
+          description: 사용자/프로필 단위 인증 키 [공통 파라미터]
+          default: testcredential
+          required: true
+          type: string
+        - name: device
+          in: query
+          description: 지정된 디바이스 구분값 [공통 파라미터]
+          default: pc
+          required: true
+          type: string
+        - name: partner
+          in: query
+          description: 파트너 구분값 [공통 파라미터]
+          default: pooq
+          required: true
+          type: string
+        - name: pooqzone
+          in: query
+          description: |
+            푹존 구분값 [공통 파라미터]
+            - 기본값 = none
+          default: none
+          required: true
+          type: string
+        - name: region
+          in: query
+          description: 서비스 국가 구분. ISO-3361 3글자 시스템(alpha-3)을 사용 [공통 파라미터]
+          default: kor
+          required: true
+          type: string
+        - name: drm
+          in: query
+          description: |
+            해당 플랫폼이 지원하는 DRM타입 지정. 복수입력 가능. [공통 파라미터]
+            - Widevine Classic = wc
+            - Widevine Modular = wm
+            - Fireplay = fp
+            - PlayReady  = pr
+            - 미지원 = none
+          default: wm
+          required: true
+          type: string
+        - name: targetage
+          in: query
+          description: |
+            시청연령등급 [공통 파라미터]
+            - 12세 이하 = 12
+            - 15세 이하 = 15
+            - 19세 이하 = 19
+            - 전체 = all
+            - 자동 = auto
+          default: auto
+          required: true
+          type: string
+        - name: channelid
+          in: path
+          description: 채널 ID
+          required: true
+          type: string
+        - name: startdatetime
+          in: query
+          description: 편성표 조회 시작 시각 (20170902 1000)
+          required: true
+          type: string
+        - name: enddatetime
+          in: query
+          description: 편성표 조회 종료 시각 (20170903 1200)
+          required: true
+          type: string
+        - name: offset
+          in: query
+          description: '시작 레코드 번호 [0]'
+          default: 0
+          required: true
+          type: integer
+        - name: limit
+          in: query
+          description: '한번에 가져오는 데이타 숫자 [5]'
+          default: 5
+          required: true
+          type: integer
+        - name: orderby
+          in: query
+          description: |
+            정렬순서 [new]
+            - 최신순 = new
+            - 과거순 = old
+          default: new
+          required: true
+          type: string
+      responses:
+        '200':
+          description: 성공
+          schema:
+            $ref: '#/definitions/olympicspecialschannelslist'
+        '550':
+          description: 메시지 표시 수준 에러 (에러 메시지를 노출하고 더 이상의 작업은 없음)
+          schema:
+            $ref: '#/definitions/errorresult'
+        '551':
+          description: 추가 동작 필요 수준 에러 (에러 메시지를 노출하고 추가 작업이 있음)
+          schema:
+            $ref: '#/definitions/errorresult'
+definitions:
+  errorresult:
+    type: object
+    description: |
+      '[공통 메시지]실패한 경우 리턴되는 공통 메시지,
+      HTTP Return code는 이 경우에도 200이다'
+    properties:
+      resultcode:
+        description: |
+          에러 코드가 리턴된다. HTTP status code 또는
+          CAP에서 확장한 코드를 사용할 수 있다. 이 코드가 200인 경우는 없다.
+        example: '550'
+        type: string
+      resultmessage:
+        description: |
+          에러 발생 시에 클라이언트가 화면에 표시할 메시지가 들어있다.
+          줄바꿈 문자로는 '\n'을 사용한다.
+        example: 해당 데이타가 없습니다.\n나중에 다시 해보세요.
+        type: string
+      resultoptional:
+        description: |
+          에러 발생시에 서버에서 클라이언트로 전송하는 추가 정보가 포함된다.
+          에러시 표시할 URL와 같은 내용이 포함된다. 이를 처리하는 것은
+          API별로 다르다. 700인 경우에는 이 필드가 공백임
+        example: 'http://www.pooq.co.kr/critical_error.html'
+        type: string
+  olympicspecialschannelslist:
+    description: 올림픽 특별 편성 채널별 편성표 목록
+    type: object
+    properties:
+      pagecount:
+        description: 남은 목록 갯수 (페이징을 위해 최대 limit x10 수 만큼 리턴됨)
+        type: string
+        example: '50'
+      count:
+        description: 목록 갯수 (페이징을 위해 최대 limit x10 수 만큼 리턴됨)
+        type: string
+        example: '1'
+      list:
+        type: array
+        items:
+          $ref: '#/definitions/olympicspecialschannelinfo'
+  olympicspecialschannelinfo:
+    type: object
+    properties:
+      channelid:
+        description: 채널ID
+        type: string
+        example: 'p01'
+      channelname:
+        description: 채널명
+        type: string
+        example: '주경기장'
+      image:
+        description: 채널 대표 이미지url
+        type: string
+        example: 'http://img.pooq.co.kr/201709/20170913/gbdngjchhecnpev.jpg'
+      schduleid:
+        description: 편성 프로그램 고유ID
+        type: string
+        example: 'm01_201709131920'
+      programid:
+        description: 프로그램ID
+        type: string
+        example: M_1002831100000100000
+      title:
+        description: 프로그램명
+        type: string
+        example: 아이스하키 준결승전
+      description:
+        description: 프로그램 설명
+        type: string
+        example: 아이스하키 준결승전입니다.
+      starttime:
+        description: '방송 시작 시각 (2017-09-01 10:00)'
+        type: string
+        example: '2017-09-01 10:00'
+      endtime:
+        description: '방송 종료 시각 (2017-09-01 11:00)'
+        type: string
+        example: '2017-09-01 11:00'
